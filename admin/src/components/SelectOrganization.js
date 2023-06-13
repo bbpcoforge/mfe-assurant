@@ -1,33 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Typography from "@mui/material/Typography";
-import { accessControlAPI } from "../../../shared/constants";
 import CustomSelect from "./CustomSelect";
+import {
+  useGetOrganizationsQuery,
+  useGetOrganizationsByParantIdQuery,
+} from "../services/organizations";
 
 export default ({ name, selectedValue, handleInputChange, userDetails }) => {
-  const [organizations, setOrganizations] = useState([]);
-  const orgqs =
+  const { data, error, isLoading } =
     userDetails && userDetails.organization
-      ? "?parentOrgId=" + userDetails.organization
-      : "";
-  const getOrganizations = async () => {
-    const res = await fetch(`${accessControlAPI}/organizations${orgqs}`);
-    let jsonRes = await res.json();
-    if (jsonRes.length > 0) {
-      jsonRes = [
-        {
-          id: userDetails.organization,
-          description: userDetails?.organizationDescription,
-        },
-        ...jsonRes,
-      ];
-    }
-
-    setOrganizations(jsonRes);
-  };
-  useEffect(() => {
-    getOrganizations();
-  }, []);
-  if (organizations.length === 0 && selectedValue) {
+      ? useGetOrganizationsByParantIdQuery(userDetails.organization)
+      : useGetOrganizationsQuery;
+  if (isLoading || error || data?.length === 0) {
     return (
       <Typography variant="subtitle1">
         {userDetails?.organizationDescription}
@@ -43,7 +27,13 @@ export default ({ name, selectedValue, handleInputChange, userDetails }) => {
       data={{
         valueSelecter: "id",
         textSelector: "description",
-        obj: organizations,
+        obj: [
+          {
+            id: userDetails.organization,
+            description: userDetails?.organizationDescription,
+          },
+          ...data,
+        ],
       }}
     />
   );

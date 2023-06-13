@@ -1,6 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { createMemoryHistory, createBrowserHistory } from "history";
+import { Provider } from "react-redux";
+import { store } from "./app/store";
 import App from "./App";
 
 // Mount function to start up the app
@@ -19,11 +21,13 @@ const mount = (
   }
 
   ReactDOM.render(
-    <App
-      history={history}
-      userDetails={userDetails}
-      userPemission={userPemission}
-    />,
+    <Provider store={store}>
+      <App
+        history={history}
+        userDetails={userDetails}
+        userPemission={userPemission}
+      />
+    </Provider>,
     el
   );
 
@@ -54,8 +58,31 @@ if (process.env.NODE_ENV === "development") {
       preferred_username: "bipin.pandey@coforge.com",
       Groups: ["Admin"],
       organization: 10000,
+      role: "superAdmin",
     };
-    mount(devRoot, { defaultHistory: createBrowserHistory(), userDetails });
+    var userPemission = {
+      roles: [{ name: "superAdmin" }],
+      resources: [
+        { name: "organizations" },
+        { name: "roles" },
+        { name: "users" },
+        { name: "actions" },
+        { name: "businessFunctions" },
+      ],
+      rules: [
+        {
+          access: "allow",
+          role: "superAdmin",
+          privileges: null,
+          resources: null,
+        },
+      ],
+    };
+    mount(devRoot, {
+      defaultHistory: createBrowserHistory(),
+      userDetails,
+      userPemission,
+    });
   }
 }
 
